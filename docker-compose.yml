@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    container_name: eureka
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+    - "8761:8761"
+  internet-shop-app:
+    container_name: internet-shop-app
+    build:
+      context: ../internet-shop-app
+      dockerfile: Dockerfile
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka/
+      - POSTGRES_DB=internet_shop
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_URL=postgres
+    depends_on:
+      - eureka-server
+      - postgres
+    ports:
+    - "8080:8080"
+  internet-shop-notification-app:
+    container_name: internet-shop-notification-app
+    build:
+      context: ../internet-shop-notification-app
+      dockerfile: Dockerfile
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka/
+      - POSTGRES_DB=internet_shop_notifications
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_URL=postgres
+      - MAIL_LOGIN=matuageorge@gmail.com
+      - MAIL_PASSWORD=dwphfptievhehccu
+    depends_on:
+      - eureka-server
+      - postgres
+    ports:
+      - "8081:8081"
+  postgres:
+    image: postgres:13.3
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
